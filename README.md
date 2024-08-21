@@ -62,3 +62,7 @@ sudo mv $GO_FILE_PATH "$GO_FILE_PATH-old"
 sudo mv go2 $GO_FILE_PATH
 sudo chmod 777 $GO_FILE_PATH
 ```
+
+If the replacement is done without problems, it should run fine.
+![image](https://github.com/user-attachments/assets/dbac61d0-7721-4cc9-a181-f6563f609738)
+
