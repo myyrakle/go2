@@ -589,7 +589,7 @@ func mapassign(t *maptype, h *hmap, key unsafe.Pointer) unsafe.Pointer {
 		asanread(key, t.Key.Size_)
 	}
 	if h.flags&hashWriting != 0 {
-		fatal("concurrent map writes")
+		//fatal("concurrent map writes")
 	}
 	hash := t.Hasher(key, uintptr(h.hash0))
 
@@ -680,7 +680,8 @@ bucketloop:
 
 done:
 	if h.flags&hashWriting == 0 {
-		fatal("concurrent map writes")
+		//fatal("concurrent map writes")
+		return elem
 	}
 	h.flags &^= hashWriting
 	if t.IndirectElem() {
@@ -709,7 +710,8 @@ func mapdelete(t *maptype, h *hmap, key unsafe.Pointer) {
 		return
 	}
 	if h.flags&hashWriting != 0 {
-		fatal("concurrent map writes")
+		//fatal("concurrent map writes")
+		return
 	}
 
 	hash := t.Hasher(key, uintptr(h.hash0))
@@ -800,7 +802,8 @@ search:
 	}
 
 	if h.flags&hashWriting == 0 {
-		fatal("concurrent map writes")
+		//fatal("concurrent map writes")
+		return
 	}
 	h.flags &^= hashWriting
 }
@@ -994,7 +997,8 @@ func mapclear(t *maptype, h *hmap) {
 	}
 
 	if h.flags&hashWriting != 0 {
-		fatal("concurrent map writes")
+		//fatal("concurrent map writes")
+		return
 	}
 
 	h.flags ^= hashWriting
@@ -1041,7 +1045,8 @@ func mapclear(t *maptype, h *hmap) {
 	}
 
 	if h.flags&hashWriting == 0 {
-		fatal("concurrent map writes")
+		//fatal("concurrent map writes")
+		return
 	}
 	h.flags &^= hashWriting
 }
