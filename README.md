@@ -44,23 +44,9 @@ First, check the previously installed go version.
 
 And in release, we find a match between the minor version and the OS.
 
-Then, you can download it using the download link.
-
 linux example
-
 ```bash
-wget -O go2 https://github.com/myyrakle/go2/releases/download/go2-1.22.6/go-1-22-6-linux-amd64
-sudo chmod +x go2
-export GO_FILE_PATH=$(which go)
-
-if [ -L "$GO_FILE_PATH" ]; then
-    echo "$GO_FILE_PATH is symbolic link"
-    export GO_FILE_PATH=$(readlink -f $GO_FILE_PATH)
-fi
-
-sudo mv $GO_FILE_PATH "$GO_FILE_PATH-old"
-sudo mv go2 $GO_FILE_PATH
-sudo chmod 777 $GO_FILE_PATH
+sudo rm -rf /usr/local/go && sudo tar -C /usr/local -xzf linux_amd64.tar.gz
 ```
 
 If the replacement is done without problems, it should run fine.
