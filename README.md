@@ -1,7 +1,8 @@
-# The Go2 Programming Language
+# Go2 Compiler
 
-A radical fork version of Go Compiler
+A radical fork version of Go Compiler.
 
+`It's the compiler's fault, not you.`
 
 [Original README](./old.README.md)
 
