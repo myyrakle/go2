@@ -8,20 +8,28 @@
 //  v5.3: pidfd_open syscall, clone3 syscall;
 //  v5.4: P_PIDFD idtype support for waitid syscall;
 //  v5.6: pidfd_getfd syscall.
+//
+// N.B. Alternative Linux implementations may not follow this ordering. e.g.,
+// QEMU user mode 7.2 added pidfd_open, but CLONE_PIDFD was not added until
+// 8.0.
 
 package os
 
 import (
 	"errors"
 	"internal/syscall/unix"
+	"runtime"
 	"sync"
 	"syscall"
 	"unsafe"
 )
 
-func ensurePidfd(sysAttr *syscall.SysProcAttr) *syscall.SysProcAttr {
+// ensurePidfd initializes the PidFD field in sysAttr if it is not already set.
+// It returns the original or modified SysProcAttr struct and a flag indicating
+// whether the PidFD should be duplicated before using.
+func ensurePidfd(sysAttr *syscall.SysProcAttr) (*syscall.SysProcAttr, bool) {
 	if !pidfdWorks() {
-		return sysAttr
+		return sysAttr, false
 	}
 
 	var pidfd int
@@ -29,23 +37,33 @@ func ensurePidfd(sysAttr *syscall.SysProcAttr) *syscall.SysProcAttr {
 	if sysAttr == nil {
 		return &syscall.SysProcAttr{
 			PidFD: &pidfd,
-		}
+		}, false
 	}
 	if sysAttr.PidFD == nil {
 		newSys := *sysAttr // copy
 		newSys.PidFD = &pidfd
-		return &newSys
+		return &newSys, false
 	}
 
-	return sysAttr
+	return sysAttr, true
 }
 
-func getPidfd(sysAttr *syscall.SysProcAttr) (uintptr, bool) {
+// getPidfd returns the value of sysAttr.PidFD (or its duplicate if needDup is
+// set) and a flag indicating whether the value can be used.
+func getPidfd(sysAttr *syscall.SysProcAttr, needDup bool) (uintptr, bool) {
 	if !pidfdWorks() {
 		return 0, false
 	}
 
-	return uintptr(*sysAttr.PidFD), true
+	h := *sysAttr.PidFD
+	if needDup {
+		dupH, e := unix.Fcntl(h, syscall.F_DUPFD_CLOEXEC, 0)
+		if e != nil {
+			return 0, false
+		}
+		h = dupH
+	}
+	return uintptr(h), true
 }
 
 func pidfdFind(pid int) (uintptr, error) {
@@ -126,14 +144,21 @@ func pidfdWorks() bool {
 
 var checkPidfdOnce = sync.OnceValue(checkPidfd)
 
-// checkPidfd checks whether all required pidfd-related syscalls work.
-// This consists of pidfd_open and pidfd_send_signal syscalls, and waitid
-// syscall with idtype of P_PIDFD.
+// checkPidfd checks whether all required pidfd-related syscalls work. This
+// consists of pidfd_open and pidfd_send_signal syscalls, waitid syscall with
+// idtype of P_PIDFD, and clone(CLONE_PIDFD).
 //
 // Reasons for non-working pidfd syscalls include an older kernel and an
 // execution environment in which the above system calls are restricted by
 // seccomp or a similar technology.
 func checkPidfd() error {
+	// In Android version < 12, pidfd-related system calls are not allowed
+	// by seccomp and trigger the SIGSYS signal. See issue #69065.
+	if runtime.GOOS == "android" {
+		ignoreSIGSYS()
+		defer restoreSIGSYS()
+	}
+
 	// Get a pidfd of the current process (opening of "/proc/self" won't
 	// work for waitid).
 	fd, err := unix.PidFDOpen(syscall.Getpid(), 0)
@@ -159,5 +184,27 @@ func checkPidfd() error {
 		return NewSyscallError("pidfd_send_signal", err)
 	}
 
+	// Verify that clone(CLONE_PIDFD) works.
+	//
+	// This shouldn't be necessary since pidfd_open was added in Linux 5.3,
+	// after CLONE_PIDFD in Linux 5.2, but some alternative Linux
+	// implementations may not adhere to this ordering.
+	if err := checkClonePidfd(); err != nil {
+		return err
+	}
+
 	return nil
 }
+
+// Provided by syscall.
+//
+//go:linkname checkClonePidfd
+func checkClonePidfd() error
+
+// Provided by runtime.
+//
+//go:linkname ignoreSIGSYS
+func ignoreSIGSYS()
+
+//go:linkname restoreSIGSYS
+func restoreSIGSYS()

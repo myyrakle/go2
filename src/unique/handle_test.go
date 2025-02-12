@@ -9,7 +9,10 @@ import (
 	"internal/abi"
 	"reflect"
 	"runtime"
+	"strings"
 	"testing"
+	"time"
+	"unsafe"
 )
 
 // Set up special types. Because the internal maps are sharded by type,
@@ -41,6 +44,7 @@ func TestHandle(t *testing.T) {
 		s: [2]testStringStruct{testStringStruct{"y"}, testStringStruct{"z"}},
 	})
 	testHandle[testStruct](t, testStruct{0.5, "184"})
+	testHandle[testEface](t, testEface("hello"))
 }
 
 func testHandle[T comparable](t *testing.T, value T) {
@@ -93,7 +97,7 @@ func drainMaps(t *testing.T) {
 
 func checkMapsFor[T comparable](t *testing.T, value T) {
 	// Manually load the value out of the map.
-	typ := abi.TypeOf(value)
+	typ := abi.TypeFor[T]()
 	a, ok := uniqueMaps.Load(typ)
 	if !ok {
 		return
@@ -108,4 +112,23 @@ func checkMapsFor[T comparable](t *testing.T, value T) {
 		return
 	}
 	t.Errorf("failed to drain internal maps of %v", value)
+}
+
+func TestMakeClonesStrings(t *testing.T) {
+	s := strings.Clone("abcdefghijklmnopqrstuvwxyz") // N.B. Must be big enough to not be tiny-allocated.
+	ran := make(chan bool)
+	runtime.SetFinalizer(unsafe.StringData(s), func(_ *byte) {
+		ran <- true
+	})
+	h := Make(s)
+
+	// Clean up s (hopefully) and run the finalizer.
+	runtime.GC()
+
+	select {
+	case <-time.After(1 * time.Second):
+		t.Fatal("string was improperly retained")
+	case <-ran:
+	}
+	runtime.KeepAlive(h)
 }
