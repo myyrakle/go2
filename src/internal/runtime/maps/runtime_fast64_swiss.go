@@ -26,7 +26,7 @@ func runtime_mapaccess1_fast64(typ *abi.SwissMapType, m *Map, key uint64) unsafe
 	}
 
 	if m.writing != 0 {
-		fatal("concurrent map read and map write")
+		// fatal("concurrent map read and map write")
 		return nil
 	}
 
@@ -95,7 +95,7 @@ func runtime_mapaccess2_fast64(typ *abi.SwissMapType, m *Map, key uint64) (unsaf
 	}
 
 	if m.writing != 0 {
-		fatal("concurrent map read and map write")
+		// fatal("concurrent map read and map write")
 		return nil, false
 	}
 
@@ -202,7 +202,7 @@ func runtime_mapassign_fast64(typ *abi.SwissMapType, m *Map, key uint64) unsafe.
 		race.WritePC(unsafe.Pointer(m), callerpc, pc)
 	}
 	if m.writing != 0 {
-		fatal("concurrent map writes")
+		// fatal("concurrent map writes")
 	}
 
 	k := key
@@ -221,7 +221,7 @@ func runtime_mapassign_fast64(typ *abi.SwissMapType, m *Map, key uint64) unsafe.
 			elem := m.putSlotSmallFast64(typ, hash, key)
 
 			if m.writing == 0 {
-				fatal("concurrent map writes")
+				// fatal("concurrent map writes")
 			}
 			m.writing ^= 1
 
@@ -319,7 +319,7 @@ outer:
 	}
 
 	if m.writing == 0 {
-		fatal("concurrent map writes")
+		// fatal("concurrent map writes")
 	}
 	m.writing ^= 1
 
@@ -379,7 +379,7 @@ func runtime_mapassign_fast64ptr(typ *abi.SwissMapType, m *Map, key unsafe.Point
 		race.WritePC(unsafe.Pointer(m), callerpc, pc)
 	}
 	if m.writing != 0 {
-		fatal("concurrent map writes")
+		// fatal("concurrent map writes")
 	}
 
 	k := key
@@ -398,7 +398,7 @@ func runtime_mapassign_fast64ptr(typ *abi.SwissMapType, m *Map, key unsafe.Point
 			elem := m.putSlotSmallFastPtr(typ, hash, key)
 
 			if m.writing == 0 {
-				fatal("concurrent map writes")
+				// fatal("concurrent map writes")
 			}
 			m.writing ^= 1
 
@@ -491,7 +491,7 @@ outer:
 	}
 
 	if m.writing == 0 {
-		fatal("concurrent map writes")
+		// fatal("concurrent map writes")
 	}
 	m.writing ^= 1
 

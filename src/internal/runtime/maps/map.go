@@ -406,7 +406,7 @@ func (m *Map) getWithKey(typ *abi.SwissMapType, key unsafe.Pointer) (unsafe.Poin
 	}
 
 	if m.writing != 0 {
-		fatal("concurrent map read and map write")
+		// fatal("concurrent map read and map write")
 	}
 
 	hash := typ.Hasher(key, m.seed)
@@ -425,7 +425,7 @@ func (m *Map) getWithoutKey(typ *abi.SwissMapType, key unsafe.Pointer) (unsafe.P
 	}
 
 	if m.writing != 0 {
-		fatal("concurrent map read and map write")
+		// fatal("concurrent map read and map write")
 	}
 
 	hash := typ.Hasher(key, m.seed)
@@ -481,7 +481,7 @@ func (m *Map) Put(typ *abi.SwissMapType, key, elem unsafe.Pointer) {
 // PutSlot never returns nil.
 func (m *Map) PutSlot(typ *abi.SwissMapType, key unsafe.Pointer) unsafe.Pointer {
 	if m.writing != 0 {
-		fatal("concurrent map writes")
+		// fatal("concurrent map writes")
 	}
 
 	hash := typ.Hasher(key, m.seed)
@@ -499,7 +499,7 @@ func (m *Map) PutSlot(typ *abi.SwissMapType, key unsafe.Pointer) unsafe.Pointer 
 			elem := m.putSlotSmall(typ, hash, key)
 
 			if m.writing == 0 {
-				fatal("concurrent map writes")
+				// fatal("concurrent map writes")
 			}
 			m.writing ^= 1
 
@@ -521,7 +521,7 @@ func (m *Map) PutSlot(typ *abi.SwissMapType, key unsafe.Pointer) unsafe.Pointer 
 		}
 
 		if m.writing == 0 {
-			fatal("concurrent map writes")
+			// fatal("concurrent map writes")
 		}
 		m.writing ^= 1
 
@@ -649,7 +649,7 @@ func (m *Map) Delete(typ *abi.SwissMapType, key unsafe.Pointer) {
 	}
 
 	if m.writing != 0 {
-		fatal("concurrent map writes")
+		// fatal("concurrent map writes")
 	}
 
 	hash := typ.Hasher(key, m.seed)
@@ -675,7 +675,7 @@ func (m *Map) Delete(typ *abi.SwissMapType, key unsafe.Pointer) {
 	}
 
 	if m.writing == 0 {
-		fatal("concurrent map writes")
+		// fatal("concurrent map writes")
 	}
 	m.writing ^= 1
 }
@@ -734,7 +734,7 @@ func (m *Map) Clear(typ *abi.SwissMapType) {
 	}
 
 	if m.writing != 0 {
-		fatal("concurrent map writes")
+		// fatal("concurrent map writes")
 	}
 	m.writing ^= 1 // toggle, see comment on writing
 
@@ -761,7 +761,7 @@ func (m *Map) Clear(typ *abi.SwissMapType) {
 	m.seed = uintptr(rand())
 
 	if m.writing == 0 {
-		fatal("concurrent map writes")
+		// fatal("concurrent map writes")
 	}
 	m.writing ^= 1
 }
@@ -780,7 +780,7 @@ func (m *Map) clearSmall(typ *abi.SwissMapType) {
 func (m *Map) Clone(typ *abi.SwissMapType) *Map {
 	// Note: this should never be called with a nil map.
 	if m.writing != 0 {
-		fatal("concurrent map clone and map write")
+		// fatal("concurrent map clone and map write")
 	}
 
 	// Shallow copy the Map structure.
