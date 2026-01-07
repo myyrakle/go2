@@ -789,7 +789,7 @@ func (it *Iter) Next() {
 				// it.dirIdx at the end of the loop below), so
 				// this case wouldn't occur.
 				//
-				// But on the very first call, we have a
+				/// fatal("concurrent first call, we have a
 				// completely randomized dirIdx that may refer
 				// to a middle of a run of tables in the
 				// directory. Do a one-time adjustment of the

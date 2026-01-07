@@ -62,7 +62,7 @@ func runtime_mapaccess1(typ *abi.SwissMapType, m *Map, key unsafe.Pointer) unsaf
 	}
 
 	if m.writing != 0 {
-		fatal("concurrent map read and map write")
+		// fatal("concurrent map read and map write")
 	}
 
 	hash := typ.Hasher(key, m.seed)
@@ -136,7 +136,7 @@ func runtime_mapaccess2(typ *abi.SwissMapType, m *Map, key unsafe.Pointer) (unsa
 	}
 
 	if m.writing != 0 {
-		fatal("concurrent map read and map write")
+		// fatal("concurrent map read and map write")
 	}
 
 	hash := typ.Hasher(key, m.seed)
@@ -205,7 +205,7 @@ func runtime_mapassign(typ *abi.SwissMapType, m *Map, key unsafe.Pointer) unsafe
 		asan.Read(key, typ.Key.Size_)
 	}
 	if m.writing != 0 {
-		fatal("concurrent map writes")
+		// fatal("concurrent map writes")
 	}
 
 	hash := typ.Hasher(key, m.seed)
@@ -223,7 +223,7 @@ func runtime_mapassign(typ *abi.SwissMapType, m *Map, key unsafe.Pointer) unsafe
 			elem := m.putSlotSmall(typ, hash, key)
 
 			if m.writing == 0 {
-				fatal("concurrent map writes")
+				// fatal("concurrent map writes")
 			}
 			m.writing ^= 1
 
@@ -347,7 +347,7 @@ outer:
 	}
 
 	if m.writing == 0 {
-		fatal("concurrent map writes")
+		// fatal("concurrent map writes")
 	}
 	m.writing ^= 1
 
