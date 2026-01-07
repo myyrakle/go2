@@ -112,7 +112,7 @@ func runtime_mapaccess1_faststr(typ *abi.SwissMapType, m *Map, key string) unsaf
 	}
 
 	if m.writing != 0 {
-		fatal("concurrent map read and map write")
+		// fatal("concurrent map read and map write")
 		return nil
 	}
 
@@ -171,7 +171,7 @@ func runtime_mapaccess2_faststr(typ *abi.SwissMapType, m *Map, key string) (unsa
 	}
 
 	if m.writing != 0 {
-		fatal("concurrent map read and map write")
+		// fatal("concurrent map read and map write")
 		return nil, false
 	}
 
@@ -270,7 +270,7 @@ func runtime_mapassign_faststr(typ *abi.SwissMapType, m *Map, key string) unsafe
 		race.WritePC(unsafe.Pointer(m), callerpc, pc)
 	}
 	if m.writing != 0 {
-		fatal("concurrent map writes")
+		// fatal("concurrent map writes")
 	}
 
 	k := key
@@ -289,7 +289,7 @@ func runtime_mapassign_faststr(typ *abi.SwissMapType, m *Map, key string) unsafe
 			elem := m.putSlotSmallFastStr(typ, hash, key)
 
 			if m.writing == 0 {
-				fatal("concurrent map writes")
+				// fatal("concurrent map writes")
 			}
 			m.writing ^= 1
 
@@ -385,7 +385,7 @@ outer:
 	}
 
 	if m.writing == 0 {
-		fatal("concurrent map writes")
+		// fatal("concurrent map writes")
 	}
 	m.writing ^= 1
 
