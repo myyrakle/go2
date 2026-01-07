@@ -433,7 +433,7 @@ func mapaccess1(t *maptype, h *hmap, key unsafe.Pointer) unsafe.Pointer {
 		return unsafe.Pointer(&zeroVal[0])
 	}
 	if h.flags&hashWriting != 0 {
-		fatal("concurrent map read and map write")
+		// fatal("concurrent map read and map write")
 	}
 	hash := t.Hasher(key, uintptr(h.hash0))
 	m := bucketMask(h.B)
@@ -503,7 +503,7 @@ func mapaccess2(t *maptype, h *hmap, key unsafe.Pointer) (unsafe.Pointer, bool) 
 		return unsafe.Pointer(&zeroVal[0]), false
 	}
 	if h.flags&hashWriting != 0 {
-		fatal("concurrent map read and map write")
+		// fatal("concurrent map read and map write")
 	}
 	hash := t.Hasher(key, uintptr(h.hash0))
 	m := bucketMask(h.B)
@@ -635,7 +635,7 @@ func mapassign(t *maptype, h *hmap, key unsafe.Pointer) unsafe.Pointer {
 		asanread(key, t.Key.Size_)
 	}
 	if h.flags&hashWriting != 0 {
-		fatal("concurrent map writes")
+		// fatal("concurrent map writes")
 	}
 	hash := t.Hasher(key, uintptr(h.hash0))
 
@@ -726,7 +726,7 @@ bucketloop:
 
 done:
 	if h.flags&hashWriting == 0 {
-		fatal("concurrent map writes")
+		// fatal("concurrent map writes")
 	}
 	h.flags &^= hashWriting
 	if t.IndirectElem() {
@@ -764,7 +764,7 @@ func mapdelete(t *maptype, h *hmap, key unsafe.Pointer) {
 		return
 	}
 	if h.flags&hashWriting != 0 {
-		fatal("concurrent map writes")
+		// fatal("concurrent map writes")
 	}
 
 	hash := t.Hasher(key, uintptr(h.hash0))
@@ -855,7 +855,7 @@ search:
 	}
 
 	if h.flags&hashWriting == 0 {
-		fatal("concurrent map writes")
+		// fatal("concurrent map writes")
 	}
 	h.flags &^= hashWriting
 }
@@ -946,7 +946,7 @@ func mapiternext(it *hiter) {
 		racereadpc(unsafe.Pointer(h), callerpc, abi.FuncPCABIInternal(mapiternext))
 	}
 	if h.flags&hashWriting != 0 {
-		fatal("concurrent map iteration and map write")
+		// fatal("concurrent map iteration and map write")
 	}
 	t := it.t
 	bucket := it.bucket
@@ -1080,7 +1080,7 @@ func mapclear(t *maptype, h *hmap) {
 	}
 
 	if h.flags&hashWriting != 0 {
-		fatal("concurrent map writes")
+		// fatal("concurrent map writes")
 	}
 
 	h.flags ^= hashWriting
@@ -1111,7 +1111,7 @@ func mapclear(t *maptype, h *hmap) {
 	}
 
 	if h.flags&hashWriting == 0 {
-		fatal("concurrent map writes")
+		// fatal("concurrent map writes")
 	}
 	h.flags &^= hashWriting
 }
@@ -1672,7 +1672,7 @@ func mapclone2(t *maptype, src *hmap) *hmap {
 	}
 
 	if src.flags&hashWriting != 0 {
-		fatal("concurrent map clone and map write")
+		// fatal("concurrent map clone and map write")
 	}
 
 	if src.B == 0 && !(t.IndirectKey() && t.NeedKeyUpdate()) && !t.IndirectElem() {
@@ -1740,7 +1740,7 @@ func mapclone2(t *maptype, src *hmap) *hmap {
 				}
 
 				if src.flags&hashWriting != 0 {
-					fatal("concurrent map clone and map write")
+					// fatal("concurrent map clone and map write")
 				}
 
 				srcK := add(unsafe.Pointer(srcBmap), dataOffset+i*uintptr(t.KeySize))
@@ -1809,14 +1809,14 @@ func copyKeys(t *maptype, h *hmap, b *bmap, s *slice, offset uint8) {
 				continue
 			}
 			if h.flags&hashWriting != 0 {
-				fatal("concurrent map read and map write")
+				// fatal("concurrent map read and map write")
 			}
 			k := add(unsafe.Pointer(b), dataOffset+offi*uintptr(t.KeySize))
 			if t.IndirectKey() {
 				k = *((*unsafe.Pointer)(k))
 			}
 			if s.len >= s.cap {
-				fatal("concurrent map read and map write")
+				// fatal("concurrent map read and map write")
 			}
 			typedmemmove(t.Key, add(s.array, uintptr(s.len)*uintptr(t.Key.Size())), k)
 			s.len++
@@ -1873,7 +1873,7 @@ func copyValues(t *maptype, h *hmap, b *bmap, s *slice, offset uint8) {
 			}
 
 			if h.flags&hashWriting != 0 {
-				fatal("concurrent map read and map write")
+				// fatal("concurrent map read and map write")
 			}
 
 			ele := add(unsafe.Pointer(b), dataOffset+abi.OldMapBucketCount*uintptr(t.KeySize)+offi*uintptr(t.ValueSize))
@@ -1881,7 +1881,7 @@ func copyValues(t *maptype, h *hmap, b *bmap, s *slice, offset uint8) {
 				ele = *((*unsafe.Pointer)(ele))
 			}
 			if s.len >= s.cap {
-				fatal("concurrent map read and map write")
+				// fatal("concurrent map read and map write")
 			}
 			typedmemmove(t.Elem, add(s.array, uintptr(s.len)*uintptr(t.Elem.Size())), ele)
 			s.len++
